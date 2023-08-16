@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+
 	"log"
 	"os"
 	"shoe-store-server/initializers"
@@ -11,6 +12,7 @@ import (
 func init() {
 	initializers.LoadEnvVariables()
 	initializers.ConnectToDatabase()
+	initializers.WebsocketClient()
 }
 
 func main() {
@@ -26,6 +28,6 @@ func main() {
 	// Start app
 	err := app.Listen(":" + os.Getenv("PORT"))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error starting application... ", err)
 	}
 }
