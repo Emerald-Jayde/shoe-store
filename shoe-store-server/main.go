@@ -3,8 +3,8 @@ package main
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"shoe-store-server/helpers"
 
-	"log"
 	"os"
 	"shoe-store-server/initializers"
 )
@@ -26,8 +26,9 @@ func main() {
 	Routes(app)
 
 	// Start app
-	err := app.Listen(":" + os.Getenv("PORT"))
-	if err != nil {
-		log.Fatal("Error starting application... ", err)
-	}
+	helpers.HandleError(
+		"Error starting application... %s",
+		app.Listen(":"+os.Getenv("PORT")),
+		true,
+	)
 }

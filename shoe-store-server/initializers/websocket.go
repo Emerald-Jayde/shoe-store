@@ -1,31 +1,38 @@
 package initializers
 
 import (
-	"log"
+	"encoding/json"
+	"fmt"
 	"os"
 	"os/signal"
+	"shoe-store-server/helpers"
 	"time"
 
+	"github.com/gofiber/fiber/v2/log"
 	"github.com/gorilla/websocket"
 )
+
+// TODO: change the name to Sale or InventoryResponse
+type Response struct {
+	Store     string `json:"store"`
+	Model     string `json:"model"`
+	Inventory int    `json:"inventory"`
+}
 
 func WebsocketClient() {
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, os.Interrupt)
 	wsURL := os.Getenv("WEBSOCKET_URL")
 
-	log.Printf("connecting to %s", wsURL)
+	log.Infof("connecting to %s", wsURL)
 
 	// Establishes connection
 	c, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
-	if err != nil {
-		log.Fatal("dial:", err)
-	}
+	helpers.HandleError("dial: ", err, true)
+
 	defer func(c *websocket.Conn) {
 		err := c.Close()
-		if err != nil {
-			log.Fatal("close websocket connection:", err)
-		}
+		helpers.HandleError("close websocket connection:", err, true)
 	}(c)
 
 	done := make(chan struct{})
@@ -35,11 +42,10 @@ func WebsocketClient() {
 		defer close(done)
 		for {
 			_, message, err := c.ReadMessage()
-			if err != nil {
-				log.Println("read:", err)
-				return
-			}
-			log.Printf("Message received: %s", message)
+			helpers.HandleError("read:", err, true)
+
+			log.Infof("Message received: %s", message)
+			populateDB(message)
 		}
 	}()
 
@@ -48,15 +54,13 @@ func WebsocketClient() {
 		case <-done:
 			return
 		case <-interrupt:
-			log.Println("interrupt")
+			log.Info("interrupt")
 
 			// Cleanly close the connection by sending a close message and then
 			// waiting (with timeout) for the server to close the connection.
 			err := c.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-			if err != nil {
-				log.Println("write close:", err)
-				return
-			}
+			helpers.HandleError("write close: ", err, true)
+
 			// when the interrupt occurs, this allows us to log cleanly that the ws has been closed (from line 38)
 			select {
 			case <-done:
@@ -65,4 +69,11 @@ func WebsocketClient() {
 			return
 		}
 	}
+}
+
+// TODO: move this to the right directory
+func populateDB(message []byte) {
+	var r Response
+	json.Unmarshal(message, &r)
+	fmt.Println(r)
 }
