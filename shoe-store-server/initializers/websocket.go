@@ -2,9 +2,9 @@ package initializers
 
 import (
 	"encoding/json"
-	"fmt"
 	"os"
 	"os/signal"
+	"shoe-store-server/event"
 	"shoe-store-server/helpers"
 	"time"
 
@@ -12,8 +12,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// TODO: change the name to Sale or InventoryResponse
-type Response struct {
+type Message struct {
 	Store     string `json:"store"`
 	Model     string `json:"model"`
 	Inventory int    `json:"inventory"`
@@ -28,7 +27,7 @@ func WebsocketClient() {
 
 	// Establishes connection
 	c, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
-	helpers.HandleError("dial: ", err, true)
+	helpers.HandleError("dial:", err, true)
 
 	defer func(c *websocket.Conn) {
 		err := c.Close()
@@ -45,7 +44,15 @@ func WebsocketClient() {
 			helpers.HandleError("read:", err, true)
 
 			log.Infof("Message received: %s", message)
-			populateDB(message)
+
+			// create new sale event
+			var m Message
+			json.Unmarshal(message, &m)
+			helpers.HandleError(
+				"error occurred during CreateSaleEvent:",
+				event.CreateSaleEvent(m.Store, m.Model, m.Inventory),
+				false,
+			)
 		}
 	}()
 
@@ -69,11 +76,4 @@ func WebsocketClient() {
 			return
 		}
 	}
-}
-
-// TODO: move this to the right directory
-func populateDB(message []byte) {
-	var r Response
-	json.Unmarshal(message, &r)
-	fmt.Println(r)
 }
