@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type PusherSale struct {
+type sale struct {
 	Store     string    `json:"store"`
 	ShoeModel string    `json:"shoe_model"`
 	NewAmount int       `json:"new_amount"`
@@ -14,13 +14,19 @@ type PusherSale struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type PusherInventory struct {
+type inventory struct {
 	InventoryID int       `json:"inventory_id"`
 	NewAmount   int       `json:"new_amount"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }
 
-var PusherClient *pusher.Client
+const (
+	potlocChannel  = "shoe-store-potloc"
+	newSaleEvent   = "newSale"
+	invUpdateEvent = "inventoryUpdate"
+)
+
+var Client *pusher.Client
 
 func SetupPusher() {
 	pusherClient := pusher.Client{
@@ -31,11 +37,11 @@ func SetupPusher() {
 		Secure:  true,
 	}
 
-	PusherClient = &pusherClient
+	Client = &pusherClient
 }
 
 func PushNewSale(store string, shoeModel string, newAmount int, oldAmount int, createdAt time.Time) {
-	data := PusherSale{
+	data := sale{
 		Store:     store,
 		ShoeModel: shoeModel,
 		NewAmount: newAmount,
@@ -43,19 +49,19 @@ func PushNewSale(store string, shoeModel string, newAmount int, oldAmount int, c
 		CreatedAt: createdAt,
 	}
 
-	if err := PusherClient.Trigger("shoe-store-potloc", "newSale", data); err != nil {
+	if err := Client.Trigger(potlocChannel, newSaleEvent, data); err != nil {
 		fmt.Println(err.Error())
 	}
 }
 
 func PushInventoryUpdate(inventoryId int, newAmount int, updatedAt time.Time) {
-	data := PusherInventory{
+	data := inventory{
 		InventoryID: inventoryId,
 		NewAmount:   newAmount,
 		UpdatedAt:   updatedAt,
 	}
 
-	if err := PusherClient.Trigger("shoe-store-potloc", "inventoryUpdate", data); err != nil {
+	if err := Client.Trigger(potlocChannel, invUpdateEvent, data); err != nil {
 		fmt.Println(err.Error())
 	}
 }

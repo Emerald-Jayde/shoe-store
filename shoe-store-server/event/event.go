@@ -3,7 +3,7 @@ package event
 import (
 	"errors"
 	"shoe-store-server/entity"
-	"shoe-store-server/helpers/pusher"
+	"shoe-store-server/lib/pusher"
 	"shoe-store-server/repository/sqlite"
 	"time"
 )
@@ -33,15 +33,14 @@ func CreateSaleEvent(storeName string, shoeModelName string, newAmount int) erro
 	sale := createNewSale(inventory, newAmount)
 	pusher.PushNewSale(storeName, shoeModelName, sale.NewInventory, sale.OldInventory, sale.CreatedAt)
 
-	updateInventory(inventory, newAmount)
+	updateInventory(&inventory, newAmount)
 	pusher.PushInventoryUpdate(int(inventory.ID), inventory.Amount, inventory.UpdatedAt)
-
 	return nil
 }
 
-func updateInventory(inventory entity.Inventory, newAmount int) {
+func updateInventory(inventory *entity.Inventory, newAmount int) {
 	inventory.Amount = newAmount
-	sqlite.UpdateInventory(&inventory)
+	sqlite.UpdateInventory(inventory)
 }
 
 func createNewSale(inventory entity.Inventory, newAmount int) entity.Sale {

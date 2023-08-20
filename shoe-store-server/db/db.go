@@ -5,7 +5,6 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"shoe-store-server/entity"
-	"shoe-store-server/helpers"
 )
 
 type DatabaseInstance struct {
@@ -16,14 +15,17 @@ var Database DatabaseInstance
 
 func ConnectToDatabase() {
 	db, err := gorm.Open(sqlite.Open("shoe-store.db"), &gorm.Config{})
-	helpers.HandleError("Failed to connect to SQLite database", err, true)
+	if err != nil {
+		log.Fatalf("Failed to connect to SQLite database: %s", err)
+	}
 
 	log.Info("Connected to the database successfully!")
-
 	log.Info("Running migrations...")
-	err = db.AutoMigrate(&entity.Store{}, &entity.ShoeModel{}, &entity.Inventory{}, &entity.Sale{})
-	helpers.HandleError("Migration failed", err, true)
 
+	err = db.AutoMigrate(&entity.Store{}, &entity.ShoeModel{}, &entity.Inventory{}, &entity.Sale{})
+	if err != nil {
+		log.Fatalf("Migration failed: %s", err)
+	}
 	log.Info("DB Migrations complete!")
 
 	Database = DatabaseInstance{Db: db}
