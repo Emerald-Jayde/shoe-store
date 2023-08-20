@@ -13,17 +13,16 @@ import (
 	"shoe-store-server/lib/websocket"
 )
 
-var addr = flag.String("addr", ":"+os.Getenv("PORT"), "http service address")
-
 func init() {
 	initializers.LoadEnvVariables()
 	db.ConnectToDatabase()
 	//initializers.SeedDB() //have it only run once
 	pusher.SetupPusher()
-	_ = ws.StartWebsocket(os.Getenv("WEBSOCKET_HOST"), "")
 }
 
 func main() {
+	addr := flag.String("addr", ":"+os.Getenv("PORT"), "http service address")
+
 	// Setup app
 	app := fiber.New()
 
@@ -32,6 +31,9 @@ func main() {
 
 	// Routes
 	api.SetupRoutes(app)
+
+	// Start websocket client
+	_ = ws.StartWebsocket(os.Getenv("WEBSOCKET_HOST"), "")
 
 	// Start app
 	if err := app.Listen(*addr); err != nil {
