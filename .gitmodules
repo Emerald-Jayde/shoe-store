@@ -1,0 +1,3 @@
+[submodule "shoe-store-client-vue"]
+	path = shoe-store-client-vue
+	url = https://github.com/Emerald-Jayde/shoe-store-client-vue.git
