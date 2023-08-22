@@ -28,7 +28,7 @@ func CreateSaleEvent(storeName string, shoeModelName string, newAmount int) erro
 		StoreID:     store.ID,
 		ShoeModelID: shoe.ID,
 	}
-	sqlite.GetInventory(&inventory)
+	sqlite.GetInventoryByStoreAndShoeModel(&inventory)
 
 	sale := createNewSale(inventory, newAmount)
 	pusher.PushNewSale(storeName, shoeModelName, sale.NewInventory, sale.OldInventory, sale.CreatedAt)

@@ -4,11 +4,13 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"shoe-store-server/entity"
 	"shoe-store-server/repository/sqlite"
+	"sort"
 )
 
 type ResponseShoeModel struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
+	ID         uint   `json:"id"`
+	Name       string `json:"name"`
+	TotalSales int    `json:"total_sales"`
 }
 
 func CreateResponseShoeModel(shoeModel entity.ShoeModel) ResponseShoeModel {
@@ -16,9 +18,11 @@ func CreateResponseShoeModel(shoeModel entity.ShoeModel) ResponseShoeModel {
 		return ResponseShoeModel{}
 	}
 
+	totalSales := getTotalSalesByShoeModel(shoeModel.ID)
 	return ResponseShoeModel{
-		ID:   shoeModel.ID,
-		Name: shoeModel.Name,
+		ID:         shoeModel.ID,
+		Name:       shoeModel.Name,
+		TotalSales: totalSales,
 	}
 }
 
@@ -32,6 +36,10 @@ func GetShoeModels(c *fiber.Ctx) error {
 		responseShoeModels = append(responseShoeModels, responseShoeModel)
 	}
 
+	sort.Slice(responseShoeModels, func(i, j int) bool {
+		return responseShoeModels[i].TotalSales >
+			responseShoeModels[j].TotalSales
+	})
 	return c.Status(fiber.StatusOK).JSON(responseShoeModels)
 }
 
@@ -62,4 +70,10 @@ func CreateShoeModel(c *fiber.Ctx) error {
 	sqlite.CreateShoeModel(&shoeModel)
 	responseShoeModel := CreateResponseShoeModel(shoeModel)
 	return c.Status(fiber.StatusCreated).JSON(responseShoeModel)
+}
+
+func getTotalSalesByShoeModel(shoeModelId uint) int {
+	var totalSales int64
+	sqlite.GetNumberOfSalesByShoeModelId(&totalSales, shoeModelId)
+	return int(totalSales)
 }

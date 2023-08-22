@@ -17,9 +17,11 @@ func SetupRoutes(app *fiber.App) {
 
 	api.Get("/inventory", v1.GetAllInventory)
 	api.Get("/inventory/store/:id", v1.GetInventoryForStore)
+	api.Get("/inventory/suggestions", v1.InventoryMoveSuggestions)
 
 	api.Get("/sales", v1.GetSales)
 	api.Get("/sales/store/:id", v1.GetSalesForStore)
+	api.Get("/sales/limit/:id", v1.GetLastXSales)
 
 	app.Use(NotFoundRoute)
 }

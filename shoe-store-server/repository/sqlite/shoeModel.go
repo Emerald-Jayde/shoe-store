@@ -17,9 +17,13 @@ func GetShoeModels(shoes *[]entity.ShoeModel) {
 	db.GetDBInstance().Find(shoes)
 }
 
-func GetShoeModelName(shoe *entity.ShoeModel) error {
-	tx := db.GetDBInstance().Select("name").First(shoe)
-	return tx.Error
+func GetShoeModelNameById(shoeModelId uint) string {
+	sm := entity.ShoeModel{}
+	db.GetDBInstance().
+		Model(&entity.ShoeModel{}).
+		Select("name").
+		First(&sm, shoeModelId)
+	return sm.Name
 }
 
 func GetShoeModelByName(shoe *entity.ShoeModel) error {

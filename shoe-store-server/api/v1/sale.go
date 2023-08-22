@@ -2,7 +2,6 @@ package v1
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
 	"shoe-store-server/entity"
 	"shoe-store-server/repository/sqlite"
 	"time"
@@ -17,23 +16,16 @@ type ResponseSale struct {
 }
 
 func CreateResponseSale(sale entity.Sale) ResponseSale {
-	store := entity.Store{
-		Model: gorm.Model{ID: sale.StoreID},
-	}
-	if err := sqlite.GetStoreName(&store); err != nil {
-		return ResponseSale{}
-	}
+	storeName := sqlite.GetStoreNameById(sale.StoreID)
+	shoeModelName := sqlite.GetShoeModelNameById(sale.ShoeModelID)
 
-	shoeModel := entity.ShoeModel{
-		Model: gorm.Model{ID: sale.ShoeModelID},
-	}
-	if err := sqlite.GetShoeModelName(&shoeModel); err != nil {
+	if storeName == "" || shoeModelName == "" {
 		return ResponseSale{}
 	}
 
 	return ResponseSale{
-		Store:     store.Name,
-		ShoeModel: shoeModel.Name,
+		Store:     storeName,
+		ShoeModel: shoeModelName,
 		NewAmount: sale.NewInventory,
 		OldAmount: sale.OldInventory,
 		CreatedAt: sale.CreatedAt,
@@ -43,6 +35,24 @@ func CreateResponseSale(sale entity.Sale) ResponseSale {
 func GetSales(c *fiber.Ctx) error {
 	var sales []entity.Sale
 	sqlite.GetSales(&sales)
+
+	responseSales := []ResponseSale{}
+	for _, sale := range sales {
+		responseSale := CreateResponseSale(sale)
+		responseSales = append(responseSales, responseSale)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(responseSales)
+}
+
+func GetLastXSales(c *fiber.Ctx) error {
+	var sales []entity.Sale
+
+	limit, err := c.ParamsInt("id")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON("Please ensure that :id is an integer")
+	}
+	sqlite.GetLatestSales(&sales, limit)
 
 	responseSales := []ResponseSale{}
 	for _, sale := range sales {

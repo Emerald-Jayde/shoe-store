@@ -4,11 +4,15 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"shoe-store-server/entity"
 	"shoe-store-server/repository/sqlite"
+	"sort"
 )
 
 type ResponseStore struct {
-	ID   uint   `json:"id"`
-	Name string `json:"name"`
+	ID          uint   `json:"id"`
+	Name        string `json:"name"`
+	TotalSales  int    `json:"total_sales"`
+	BestSeller  string `json:"best_seller"`
+	WorstSeller string `json:"worst_seller"`
 }
 
 func CreateResponseStore(store entity.Store) ResponseStore {
@@ -16,9 +20,17 @@ func CreateResponseStore(store entity.Store) ResponseStore {
 		return ResponseStore{}
 	}
 
+	totalSales := getTotalSalesByStore(store.ID)
+	s := sqlite.GetBestAndWorstShoeModelSalesByStoreId(store.ID)
+	bestSeller := sqlite.GetShoeModelNameById(uint(s["best"][0]))
+	worstSeller := sqlite.GetShoeModelNameById(uint(s["worst"][0]))
+
 	return ResponseStore{
-		ID:   store.ID,
-		Name: store.Name,
+		ID:          store.ID,
+		Name:        store.Name,
+		TotalSales:  totalSales,
+		BestSeller:  bestSeller,
+		WorstSeller: worstSeller,
 	}
 }
 
@@ -32,15 +44,13 @@ func GetStores(c *fiber.Ctx) error {
 		responseStores = append(responseStores, responseStore)
 	}
 
+	sort.Slice(responseStores, func(i, j int) bool {
+		return responseStores[i].TotalSales >
+			responseStores[j].TotalSales
+	})
 	return c.Status(fiber.StatusOK).JSON(responseStores)
 }
 
-// TODO: for repository decoupling
-// 1. dont call db directly, call repository.sqlite.store.get
-// 1.1 return a real entity
-// 2. remove gorm from entity, create the gorm entities in a separate folder
-// 2.1. the gorm entity will have a constructor to make a GO entity
-// 3. in the api calls, for CreateResponse, you use the real entity
 func GetStore(c *fiber.Ctx) error {
 	var store entity.Store
 
@@ -68,4 +78,10 @@ func CreateStore(c *fiber.Ctx) error {
 	sqlite.CreateStore(&store)
 	responseStore := CreateResponseStore(store)
 	return c.Status(fiber.StatusCreated).JSON(responseStore)
+}
+
+func getTotalSalesByStore(shoeModelId uint) int {
+	var totalSales int64
+	sqlite.GetNumberOfSalesByStoreId(&totalSales, shoeModelId)
+	return int(totalSales)
 }
