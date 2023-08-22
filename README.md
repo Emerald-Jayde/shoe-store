@@ -54,6 +54,7 @@ Features:
 * Implement the ability to create/add/delete a Store/Shoe Model
 * Allow Admin to edit the LOW_STOCK/HIGH_STOCK value
 * Execute shoe transfer
+* Show for each shoe model, which stores sell the most and the least
 
 
 Analytics:
@@ -74,3 +75,18 @@ Infrastructure:
 * sqlite
 
 ## Running the project
+Run the following to start tapping into the inventory events.
+
+    (bin/)websocketd --port=8080 ruby inventory.rb
+
+You now have an active connection to their stores opened on port 8080.
+
+Start the go server.
+
+    go build shoe-store-server && ./shoe-store-server/shoe-store-server
+Make sure to clone the repo in a path that Go has access to.
+
+Start the client.
+
+    npm install
+    npm run serve -- --port 4000
