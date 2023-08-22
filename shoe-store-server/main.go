@@ -16,7 +16,7 @@ import (
 func init() {
 	initializers.LoadEnvVariables()
 	db.ConnectToDatabase()
-	//initializers.SeedDB() //have it only run once
+	initializers.SeedDB() // only run once
 	pusher.SetupPusher()
 }
 
