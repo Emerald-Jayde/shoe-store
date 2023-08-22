@@ -56,7 +56,6 @@ Features:
 * Execute shoe transfer
 * Show for each shoe model, which stores sell the most and the least
 
-
 Analytics:
 * Implement some reporting to track:
   * sales per month (per shoe model)
@@ -68,6 +67,7 @@ Infrastructure:
 * Unit tests!
 * Create GitHub actions to run tests and linter before merging
 * Add Redis for caching
+* Manage and encrypt the secrets
 
 ## Requirements
 * go 1.21
