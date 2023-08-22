@@ -75,6 +75,8 @@ Infrastructure:
 * sqlite
 
 ## Running the project
+    git clone --recurse-submodules https://github.com/Emerald-Jayde/shoe-store.git
+
 Run the following to start tapping into the inventory events.
 
     (bin/)websocketd --port=8080 ruby inventory.rb
