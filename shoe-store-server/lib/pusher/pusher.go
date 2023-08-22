@@ -3,6 +3,7 @@ package pusher
 import (
 	"fmt"
 	"github.com/pusher/pusher-http-go/v5"
+	"os"
 	"time"
 )
 
@@ -30,9 +31,9 @@ var Client *pusher.Client
 
 func SetupPusher() {
 	pusherClient := pusher.Client{
-		AppID:   "1655017",
-		Key:     "f8fae05c56b80676064a",
-		Secret:  "f5017f13d28a9f235e4a",
+		AppID:   os.Getenv("PUSHER_APPID"),
+		Key:     os.Getenv("PUSHER_KEY"),
+		Secret:  os.Getenv("PUSHER_SECRET"),
 		Cluster: "us2",
 		Secure:  true,
 	}
